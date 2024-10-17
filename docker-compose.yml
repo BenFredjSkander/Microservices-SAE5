@@ -1,0 +1,39 @@
+version: "3.3"
+services:  
+  discovery:
+    build: /eureka
+    ports:
+      - "8761:8761" 
+    image: "eureka" 
+
+
+  candidat:
+    build: /candidat
+    environment:
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/eureka/
+    ports:
+        - "8082:8082"
+    image: "candidate-service" 
+
+  job_A:
+      build: /job
+      environment:
+      - eureka.client.serviceUrl.defaultZone=http://discovery:8761/eureka/
+      - SPRING_DATASOURCE_URL=jdbc:mysql://docker-mysql_1:3306/jobs?autoReconnect=true&useSSL=false   
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=
+      ports:
+      - "8081:8081"
+      image: "job-service"
+      depends_on:
+      - discovery
+      - docker-mysql_1
+
+  docker-mysql_1:
+    image: "mysql:5.6"
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_DATABASE=jobs
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "3306:3306"
